@@ -78,7 +78,7 @@ def _slab_model(breeder_mat):
     my_settings.source = plasma_source
 
     mesh = openmc.RegularMesh()
-    mesh.dimension = [1, 1, 40]
+    mesh.dimension = [40, 40, 40]
     mesh.lower_left = (-20, -20, -20)
     mesh.upper_right = (20, 20, 20)
 
