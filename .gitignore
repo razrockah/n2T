@@ -19,3 +19,9 @@ tallies.out
 # Julia
 *.jl.cov
 *.jl.mem
+
+# IDE
+.idea/
+
+# openmc-plotter
+plot_settings.pkl
