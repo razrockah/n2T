@@ -135,6 +135,15 @@ Heat map of the flux mesh tally: an x-z slice through the whole region
 julia analysis/plot_flux_heatmap.jl
 ```
 
+### `RESULTS.jl`
+Pluto notebook: introduction, the two CSVs as DataFrames, and all the
+plots (TBR x-z and x-y slices, TBR depth profile, flux x-z slice) in one
+reactive page. Open it with:
+
+```bash
+julia -e 'using Pluto; Pluto.run(notebook="RESULTS.jl")'
+```
+
 ## Plotting the geometry in openmc-plotter
 
 1. Export and launch (either `python src/plot_model.py`, or
