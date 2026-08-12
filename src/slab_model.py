@@ -52,9 +52,8 @@ def _slab_model(breeder_mat):
     fw_mat = make_first_wall()
     coating_mat = make_coating()
 
-    # x and y span -20.5..20.5 so the 1 cm mesh voxels are centered on the
-    # source axis (x = y = 0); the slab front face is at z = 0.
-    box = openmc.model.RectangularParallelepiped(-20.5, 20.5, -20.5, 20.5, -15, 19, boundary_type='vacuum')
+    # 80 x 80 cm slab face, front face at z = 0
+    box = openmc.model.RectangularParallelepiped(-40, 40, -40, 40, -15, 19, boundary_type='vacuum')
 
     coating_front = openmc.ZPlane(0.0)
     fw_front = openmc.ZPlane(0.1)
@@ -67,9 +66,10 @@ def _slab_model(breeder_mat):
 
     geometry = openmc.Geometry([void_cell, coating_cell, fw_cell, breeder_cell])
 
-    # point source on the slab axis, 10 cm in front of the coating
-    point = openmc.stats.Point((0, 0, -10))
-    plasma_source = openmc.IndependentSource( space= point,energy=openmc.stats.muir(e0=14080000.0, m_rat=5.0, kt=20000.0))
+    # uniform box source in the void: full 80 x 80 cm face, 4 cm thick,
+    # centered 10 cm in front of the coating
+    source_box = openmc.stats.Box((-40, -40, -12), (40, 40, -8))
+    plasma_source = openmc.IndependentSource(space=source_box, energy=openmc.stats.muir(e0=14080000.0, m_rat=5.0, kt=20000.0))
 
     my_settings = openmc.Settings()
     my_settings.batches = 100
@@ -77,12 +77,17 @@ def _slab_model(breeder_mat):
     my_settings.run_mode = 'fixed source'
     my_settings.source = plasma_source
 
-    # 1 cm voxels over the slab only: x,y centers at -20..20 (0 on the axis),
-    # z centers at 0.5..18.5
+    # 2 x 2 x 1 cm voxels over the slab only (z = 0..19)
     mesh = openmc.RegularMesh()
-    mesh.dimension = [41, 41, 19]
-    mesh.lower_left = (-20.5, -20.5, 0)
-    mesh.upper_right = (20.5, 20.5, 19)
+    mesh.dimension = [40, 40, 19]
+    mesh.lower_left = (-40, -40, 0)
+    mesh.upper_right = (40, 40, 19)
+
+    # same voxels over the whole region (void + slab)
+    flux_mesh = openmc.RegularMesh()
+    flux_mesh.dimension = [40, 40, 34]
+    flux_mesh.lower_left = (-40, -40, -15)
+    flux_mesh.upper_right = (40, 40, 19)
 
     tbr_tally = openmc.Tally(name='tbr')
     tbr_tally.scores = ['H3-production']
@@ -91,8 +96,12 @@ def _slab_model(breeder_mat):
     tbr_mesh_tally.filters = [openmc.MeshFilter(mesh)]
     tbr_mesh_tally.scores = ['H3-production']
 
+    flux_mesh_tally = openmc.Tally(name='flux_mesh')
+    flux_mesh_tally.filters = [openmc.MeshFilter(flux_mesh)]
+    flux_mesh_tally.scores = ['flux']
+
     return openmc.Model(geometry=geometry, settings=my_settings,
-                        tallies=openmc.Tallies([tbr_tally, tbr_mesh_tally]))
+                        tallies=openmc.Tallies([tbr_tally, tbr_mesh_tally, flux_mesh_tally]))
 
 
 def pbli_slab_model(enrichment=90):

@@ -18,18 +18,16 @@ environment.
 
 ## Slab geometry
 
-A 41 x 41 x 34 cm box (vacuum boundary) layered along z. The slab front
-face is at z = 0 and the point source sits on the slab axis at z = -10, so
-z is directly the depth into the slab:
+An 80 x 80 x 34 cm box (vacuum boundary) layered along z. The slab front
+face is at z = 0, so z is directly the depth into the slab:
 
 ```
-z:  -15    -10 (source)    0    0.1          4             19
-     |   void      *        | W    | first wall | breeder    |
-     |                      | 0.1  | 3.9 cm     | 15 cm      |
+z:  -15   -12..-8 (source)   0    0.1          4             19
+     |  void [========]       | W    | first wall | breeder    |
+     |                        | 0.1  | 3.9 cm     | 15 cm      |
 ```
 
-x and y span -20.5..20.5 cm so that 1 cm mesh voxels are centered on the
-source axis (x = y = 0).
+x and y span -40..40 cm (80 cm slab face).
 
 Layer materials:
 
@@ -51,14 +49,17 @@ Breeder material options (all at 900 K, Li-6 enriched to the requested at%):
 
 Every model comes with:
 
-- a point source at (0, 0, -10) — on the slab axis, 10 cm in front of the
-  coating — with a Muir DT energy spectrum (14.08 MeV, kt = 20 keV),
-  isotropic
+- a uniform box source in the void: the full 80 x 80 cm face, 4 cm thick,
+  centered 10 cm in front of the coating (z = -12..-8), with a Muir DT
+  energy spectrum (14.08 MeV, kt = 20 keV), isotropic
 - fixed-source run settings: 100 batches x 500000 particles
-- two `H3-production` tallies: `tbr` (whole model, the mean is the TBR per
-  source neutron) and `tbr_mesh` (41x41x19 regular mesh of 1 cm3 voxels
-  covering just the slab, z = 0..19; voxel centers sit at integer x and y,
-  including exactly x = y = 0 on the source axis)
+- three tallies, all on 2 x 2 x 1 cm voxels where meshed:
+  - `tbr` — whole-model `H3-production`; the mean is the TBR per source
+    neutron
+  - `tbr_mesh` — `H3-production` on a 40x40x19 mesh covering just the slab
+    (z = 0..19)
+  - `flux_mesh` — `flux` (track-length, per source neutron) on a 40x40x34
+    mesh covering the whole region including the void (z = -15..19)
 
 ## Model functions (`src/slab_model.py`)
 
@@ -93,12 +94,13 @@ python src/plot_model.py
 ```
 
 ### `src/run_tbr.py`
-Runs the simulation and writes the mesh tally to
-`results/tbr_mesh.csv` (`-o` to change) with columns
-`breeder, enrichment, x_cm, y_cm, z_cm, tbr, tbr_std_dev` — one row per
-1 cm3 voxel (coordinates are voxel centers). Also prints the total TBR.
-`-p`/`-b` override particles per batch and batches (useful for quick
-tests):
+Runs the simulation and writes both mesh tallies to
+`results/tbr_mesh.csv` and `results/flux_mesh.csv` (`-o` changes the
+directory) with columns
+`breeder, enrichment, x_cm, y_cm, z_cm, <value>, <value>_std_dev` — one
+row per voxel (coordinates are voxel centers, `<value>` is `tbr` or
+`flux`). Also prints the total TBR. `-p`/`-b` override particles per
+batch and batches (useful for quick tests):
 
 ```bash
 python src/run_tbr.py -m pbli -e 90
@@ -117,12 +119,20 @@ julia analysis/load_tbr.jl
 ### `analysis/plot_tbr_heatmap.jl`
 Heat maps (CairoMakie) of the TBR mesh tally, two slices:
 
-- `results/tbr_heatmap.png` — x-z slice through the source axis (y = 0)
+- `results/tbr_heatmap.png` — x-z slice at the y voxel nearest the axis
 - `results/tbr_heatmap_xy.png` — x-y slice in the first breeder voxel
   layer (z = 4.5 cm)
 
 ```bash
 julia analysis/plot_tbr_heatmap.jl
+```
+
+### `analysis/plot_flux_heatmap.jl`
+Heat map of the flux mesh tally: an x-z slice through the whole region
+(void + slab) on a log color scale, saved to `results/flux_heatmap.png`:
+
+```bash
+julia analysis/plot_flux_heatmap.jl
 ```
 
 ## Plotting the geometry in openmc-plotter

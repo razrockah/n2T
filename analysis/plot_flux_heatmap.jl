@@ -1,12 +1,12 @@
-# TBR heat maps for the slab: x-z slice through the axis and
-# x-y slice in the first breeder voxel layer (z = 4.5 cm).
+# Neutron flux heat map: x-z slice through the whole region (void + slab),
+# log color scale.
 using CSV, DataFrames, CairoMakie
 
 function plt_heatmap(x, y, values, xlabel, ylabel, title)
     with_theme(theme_latexfonts()) do
         fig = Figure(size = (1000, 600))
         ax = Axis(fig[1, 1], xlabel = xlabel, ylabel = ylabel, title = title, xlabelsize = 25, ylabelsize = 25, titlesize = 30, xticklabelsize = 20, yticklabelsize = 20)
-        hm = heatmap!(ax, x, y, values)
+        hm = heatmap!(ax, x, y, values, colorscale = log10)
         Colorbar(fig[1, 2], hm, labelsize = 25, ticklabelsize = 20)
         fig
     end
@@ -19,26 +19,21 @@ function slice_matrix(slice, xcol, ycol)
     for row in eachrow(slice)
         i = searchsortedfirst(xs, row[xcol])
         j = searchsortedfirst(ys, row[ycol])
-        vals[i, j] = row.tbr
+        vals[i, j] = row.flux
     end
     xs, ys, vals
 end
 
-df = CSV.read(joinpath(@__DIR__, "..", "results", "tbr_mesh.csv"), DataFrame)
+df = CSV.read(joinpath(@__DIR__, "..", "results", "flux_mesh.csv"), DataFrame)
 label = "$(df.breeder[1]), $(df.enrichment[1]) at% Li-6"
 
 # x-z slice at the y voxel nearest the axis
 ys_all = unique(df.y_cm)
 y0 = ys_all[argmin(abs.(ys_all))]
-xs, zs, tbr_xz = slice_matrix(df[df.y_cm .== y0, :], :x_cm, :z_cm)
-fig = plt_heatmap(xs, zs, tbr_xz, "x [cm]", "z [cm]", "TBR, $(label) (y = $(y0) cm)")
-png_path = joinpath(@__DIR__, "..", "results", "tbr_heatmap.png")
-save(png_path, fig)
-println("saved $(png_path)")
+xs, zs, flux_xz = slice_matrix(df[df.y_cm .== y0, :], :x_cm, :z_cm)
+flux_xz[flux_xz .<= 0] .= NaN  # empty voxels break the log scale
 
-# x-y slice in the first breeder voxel layer (breeder starts at z = 4)
-xs, ys, tbr_xy = slice_matrix(df[df.z_cm .== 4.5, :], :x_cm, :y_cm)
-fig = plt_heatmap(xs, ys, tbr_xy, "x [cm]", "y [cm]", "TBR, $(label) (z = 4.5 cm)")
-png_path = joinpath(@__DIR__, "..", "results", "tbr_heatmap_xy.png")
+fig = plt_heatmap(xs, zs, flux_xz, "x [cm]", "z [cm]", "Neutron flux, $(label) (y = $(y0) cm)")
+png_path = joinpath(@__DIR__, "..", "results", "flux_heatmap.png")
 save(png_path, fig)
 println("saved $(png_path)")
