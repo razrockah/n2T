@@ -68,14 +68,8 @@ def _slab_model(breeder_mat):
     geometry = openmc.Geometry([void_cell, coating_cell, fw_cell, breeder_cell])
 
     # point source at the origin, 10 cm in front of the coating
-    plasma_source = openmc.IndependentSource(
-        space=openmc.stats.SphericalIndependent(
-            r=openmc.stats.Discrete([0], [1]),
-            cos_theta=openmc.stats.Discrete([0], [1]),
-            phi=openmc.stats.Discrete([0], [1]),
-            origin=(0.0, 0.0, 0.0)),
-        angle=openmc.stats.Isotropic(),
-        energy=openmc.stats.muir(e0=14080000.0, m_rat=5.0, kt=20000.0))
+    point = openmc.stats.Point((0, 0, 0))
+    plasma_source = openmc.IndependentSource( space= point,energy=openmc.stats.muir(e0=14080000.0, m_rat=5.0, kt=20000.0))
 
     my_settings = openmc.Settings()
     my_settings.batches = 100
