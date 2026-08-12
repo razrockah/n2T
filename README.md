@@ -1,5 +1,6 @@
-## WORK IN PROGRESS
-# n2T — neutron to tritium
+WORK IN PROGRESS
+# n2T 
+### neutron to tritium
 
 A lithium enrichment optimization analysis project for fusion breeder blankets, built on [OpenMC](https://openmc.org).
 
