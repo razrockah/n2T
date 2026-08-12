@@ -1,4 +1,4 @@
-"""Build the basic slab blanket model and export it to model.xml."""
+"""Slab blanket models: three breeder options, plasma point source, TBR tallies."""
 import argparse
 
 import openmc
@@ -49,9 +49,8 @@ def make_coating():
     return tungsten
 
 
-def slab_model(breeder='pbli', enrichment=90):
+def _slab_model(breeder_mat):
     """Slab along z: void | thin W coating | first wall | breeder."""
-    breeder_mat = make_breeder(breeder, enrichment)
     fw_mat = make_first_wall()
     coating_mat = make_coating()
 
@@ -67,12 +66,57 @@ def slab_model(breeder='pbli', enrichment=90):
     breeder_cell = openmc.Cell(name='breeder', fill=breeder_mat, region=-box & +breeder_front)
 
     geometry = openmc.Geometry([void_cell, coating_cell, fw_cell, breeder_cell])
-    return openmc.Model(geometry=geometry)
+
+    # point source at the origin, 10 cm in front of the coating
+    plasma_source = openmc.IndependentSource(
+        space=openmc.stats.SphericalIndependent(
+            r=openmc.stats.Discrete([0], [1]),
+            cos_theta=openmc.stats.Discrete([0], [1]),
+            phi=openmc.stats.Discrete([0], [1]),
+            origin=(0.0, 0.0, 0.0)),
+        angle=openmc.stats.Isotropic(),
+        energy=openmc.stats.muir(e0=14080000.0, m_rat=5.0, kt=20000.0))
+
+    my_settings = openmc.Settings()
+    my_settings.batches = 100
+    my_settings.particles = 500000
+    my_settings.run_mode = 'fixed source'
+    my_settings.source = plasma_source
+
+    mesh = openmc.RegularMesh()
+    mesh.dimension = [1, 1, 40]
+    mesh.lower_left = (-20, -20, -20)
+    mesh.upper_right = (20, 20, 20)
+
+    tbr_tally = openmc.Tally(name='tbr')
+    tbr_tally.scores = ['H3-production']
+
+    tbr_mesh_tally = openmc.Tally(name='tbr_mesh')
+    tbr_mesh_tally.filters = [openmc.MeshFilter(mesh)]
+    tbr_mesh_tally.scores = ['H3-production']
+
+    return openmc.Model(geometry=geometry, settings=my_settings,
+                        tallies=openmc.Tallies([tbr_tally, tbr_mesh_tally]))
+
+
+def pbli_slab_model(enrichment=90):
+    return _slab_model(make_breeder('pbli', enrichment))
+
+
+def li_slab_model(enrichment=90):
+    return _slab_model(make_breeder('li', enrichment))
+
+
+def flibe_slab_model(enrichment=90):
+    return _slab_model(make_breeder('flibe', enrichment))
+
+
+SLAB_MODELS = {'pbli': pbli_slab_model, 'li': li_slab_model, 'flibe': flibe_slab_model}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-m', '--breeder', choices=['pbli', 'li', 'flibe'], default='pbli',
+    parser.add_argument('-m', '--breeder', choices=SLAB_MODELS, default='pbli',
                         help='breeder material (default: pbli)')
     parser.add_argument('-e', '--enrichment', type=float, default=90,
                         help='Li-6 enrichment in atom percent (default: 90)')
@@ -80,7 +124,7 @@ def main():
                         help='output XML path (default: model.xml)')
     args = parser.parse_args()
 
-    slab_model(args.breeder, args.enrichment).export_to_model_xml(args.output)
+    SLAB_MODELS[args.breeder](args.enrichment).export_to_model_xml(args.output)
     print(f'exported {args.output} -- view it with: openmc-plotter {args.output}')
 
 
