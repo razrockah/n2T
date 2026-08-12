@@ -18,14 +18,18 @@ environment.
 
 ## Slab geometry
 
-A 40x40x40 cm box (vacuum boundary) layered along z. Neutrons come from the
-point source in the void and hit the layers in this order:
+A 41 x 41 x 34 cm box (vacuum boundary) layered along z. The slab front
+face is at z = 0 and the point source sits on the slab axis at z = -10, so
+z is directly the depth into the slab:
 
 ```
-z:  -20    0 (source)   10    10.1        12             20
-     |   void       *    | W    | first wall | breeder     |
-     |                   | 0.1  | 1.9 cm     | 8 cm        |
+z:  -15    -10 (source)    0    0.1          4             19
+     |   void      *        | W    | first wall | breeder    |
+     |                      | 0.1  | 3.9 cm     | 15 cm      |
 ```
+
+x and y span -20.5..20.5 cm so that 1 cm mesh voxels are centered on the
+source axis (x = y = 0).
 
 Layer materials:
 
@@ -47,12 +51,14 @@ Breeder material options (all at 900 K, Li-6 enriched to the requested at%):
 
 Every model comes with:
 
-- a point source at the origin (10 cm in front of the coating) with a Muir
-  DT energy spectrum (14.08 MeV, kt = 20 keV), isotropic
+- a point source at (0, 0, -10) — on the slab axis, 10 cm in front of the
+  coating — with a Muir DT energy spectrum (14.08 MeV, kt = 20 keV),
+  isotropic
 - fixed-source run settings: 100 batches x 500000 particles
 - two `H3-production` tallies: `tbr` (whole model, the mean is the TBR per
-  source neutron) and `tbr_mesh` (40x40x40 regular mesh over the box, i.e.
-  the TBR contribution per 1 cm3 voxel)
+  source neutron) and `tbr_mesh` (41x41x19 regular mesh of 1 cm3 voxels
+  covering just the slab, z = 0..19; voxel centers sit at integer x and y,
+  including exactly x = y = 0 on the source axis)
 
 ## Model functions (`src/slab_model.py`)
 
@@ -109,8 +115,11 @@ julia analysis/load_tbr.jl
 ```
 
 ### `analysis/plot_tbr_heatmap.jl`
-Heat map (CairoMakie) of the TBR mesh tally: an x-z slice at the y voxel
-closest to the source plane, saved to `results/tbr_heatmap.png`:
+Heat maps (CairoMakie) of the TBR mesh tally, two slices:
+
+- `results/tbr_heatmap.png` — x-z slice through the source axis (y = 0)
+- `results/tbr_heatmap_xy.png` — x-y slice in the first breeder voxel
+  layer (z = 4.5 cm)
 
 ```bash
 julia analysis/plot_tbr_heatmap.jl
@@ -125,7 +134,7 @@ julia analysis/plot_tbr_heatmap.jl
 3. In the options dock, set **Basis** to `xz` (or `yz`) so the z axis is in
    the plot, and set **Color By** to `material`.
 4. Click **Apply Changes**. The slab now shows as horizontal bands in the
-   upper half of the plot (z = 10..20): thin W coating, first wall, breeder.
+   upper half of the plot (z = 0..19): thin W coating, first wall, breeder.
 5. Zoom with the scroll wheel; right-click any point to list the cell and
    material under the cursor. To zoom into the layers directly, set Origin
-   z to 15 and Width/Height to ~25 before applying.
+   z to 10 and Width/Height to ~25 before applying.

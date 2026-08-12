@@ -52,11 +52,13 @@ def _slab_model(breeder_mat):
     fw_mat = make_first_wall()
     coating_mat = make_coating()
 
-    box = openmc.model.RectangularParallelepiped(-20, 20, -20, 20, -20, 20, boundary_type='vacuum')
+    # x and y span -20.5..20.5 so the 1 cm mesh voxels are centered on the
+    # source axis (x = y = 0); the slab front face is at z = 0.
+    box = openmc.model.RectangularParallelepiped(-20.5, 20.5, -20.5, 20.5, -15, 19, boundary_type='vacuum')
 
-    coating_front = openmc.ZPlane(1)
-    fw_front = openmc.ZPlane(1.1)
-    breeder_front = openmc.ZPlane(5)
+    coating_front = openmc.ZPlane(0.0)
+    fw_front = openmc.ZPlane(0.1)
+    breeder_front = openmc.ZPlane(4)
 
     void_cell = openmc.Cell(name='void', region=-box & -coating_front)
     coating_cell = openmc.Cell(name='coating', fill=coating_mat, region=-box & +coating_front & -fw_front)
@@ -65,8 +67,8 @@ def _slab_model(breeder_mat):
 
     geometry = openmc.Geometry([void_cell, coating_cell, fw_cell, breeder_cell])
 
-    # point source at the origin, 10 cm in front of the coating
-    point = openmc.stats.Point((0, 0, 0))
+    # point source on the slab axis, 10 cm in front of the coating
+    point = openmc.stats.Point((0, 0, -10))
     plasma_source = openmc.IndependentSource( space= point,energy=openmc.stats.muir(e0=14080000.0, m_rat=5.0, kt=20000.0))
 
     my_settings = openmc.Settings()
@@ -75,10 +77,12 @@ def _slab_model(breeder_mat):
     my_settings.run_mode = 'fixed source'
     my_settings.source = plasma_source
 
+    # 1 cm voxels over the slab only: x,y centers at -20..20 (0 on the axis),
+    # z centers at 0.5..18.5
     mesh = openmc.RegularMesh()
-    mesh.dimension = [100, 100, 100]
-    mesh.lower_left = (-25, -25, -25)
-    mesh.upper_right = (25, 25, 25)
+    mesh.dimension = [41, 41, 19]
+    mesh.lower_left = (-20.5, -20.5, 0)
+    mesh.upper_right = (20.5, 20.5, 19)
 
     tbr_tally = openmc.Tally(name='tbr')
     tbr_tally.scores = ['H3-production']
