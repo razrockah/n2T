@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools >= 65.4.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "n2t"
+version = "0.1.0"
+description = "neutron to tritium: Li-6 enrichment optimization for fusion breeder blankets, built on OpenMC"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["openmc", "tritium", "TBR", "fusion", "breeder blanket"]
+dependencies = [
+    "openmc>=0.15",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

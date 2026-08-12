@@ -1,0 +1,21 @@
+CLAUDE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+
+# OpenMC run artifacts
+*.h5
+*.h5m
+*.xml
+tallies.out
+*.step
+*.stl
+
+# Julia
+*.jl.cov
+*.jl.mem
