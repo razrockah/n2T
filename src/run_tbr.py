@@ -37,16 +37,18 @@ def main():
         total = sp.get_tally(name='tbr')
         mesh_tally = sp.get_tally(name='tbr_mesh')
         mesh = mesh_tally.filters[0].mesh
-        zmin, zmax = mesh.lower_left[2], mesh.upper_right[2]
-        n = mesh.dimension[2]
-        z_mid = zmin + (np.arange(n) + 0.5) * (zmax - zmin) / n
 
+        mesh_df = mesh_tally.get_pandas_dataframe()
+        # mesh indices (1-based) -> bin-center coordinates in cm
+        widths = (np.array(mesh.upper_right) - np.array(mesh.lower_left)) / np.array(mesh.dimension)
         df = pd.DataFrame({
             'breeder': args.breeder,
             'enrichment': args.enrichment,
-            'z_cm': z_mid,
-            'tbr': mesh_tally.mean.flatten(),
-            'tbr_std_dev': mesh_tally.std_dev.flatten(),
+            'x_cm': mesh.lower_left[0] + (mesh_df[(f'mesh {mesh.id}', 'x')] - 0.5) * widths[0],
+            'y_cm': mesh.lower_left[1] + (mesh_df[(f'mesh {mesh.id}', 'y')] - 0.5) * widths[1],
+            'z_cm': mesh.lower_left[2] + (mesh_df[(f'mesh {mesh.id}', 'z')] - 0.5) * widths[2],
+            'tbr': mesh_df['mean'],
+            'tbr_std_dev': mesh_df['std. dev.'],
         })
 
     args.output.parent.mkdir(parents=True, exist_ok=True)

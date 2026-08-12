@@ -51,8 +51,8 @@ Every model comes with:
   DT energy spectrum (14.08 MeV, kt = 20 keV), isotropic
 - fixed-source run settings: 100 batches x 500000 particles
 - two `H3-production` tallies: `tbr` (whole model, the mean is the TBR per
-  source neutron) and `tbr_mesh` (1x1x40 regular mesh over the box, i.e. the
-  TBR contribution per 1 cm slice along z)
+  source neutron) and `tbr_mesh` (40x40x40 regular mesh over the box, i.e.
+  the TBR contribution per 1 cm3 voxel)
 
 ## Model functions (`src/slab_model.py`)
 
@@ -89,9 +89,10 @@ python src/plot_model.py
 ### `src/run_tbr.py`
 Runs the simulation and writes the mesh tally to
 `results/tbr_mesh.csv` (`-o` to change) with columns
-`breeder, enrichment, z_cm, tbr, tbr_std_dev` — one row per 1 cm z-slice.
-Also prints the total TBR. `-p`/`-b` override particles per batch and
-batches (useful for quick tests):
+`breeder, enrichment, x_cm, y_cm, z_cm, tbr, tbr_std_dev` — one row per
+1 cm3 voxel (coordinates are voxel centers). Also prints the total TBR.
+`-p`/`-b` override particles per batch and batches (useful for quick
+tests):
 
 ```bash
 python src/run_tbr.py -m pbli -e 90
@@ -105,6 +106,14 @@ Reads `results/tbr_mesh.csv` into a DataFrame variable `df` and prints it:
 
 ```bash
 julia analysis/load_tbr.jl
+```
+
+### `analysis/plot_tbr_heatmap.jl`
+Heat map (CairoMakie) of the TBR mesh tally: an x-z slice at the y voxel
+closest to the source plane, saved to `results/tbr_heatmap.png`:
+
+```bash
+julia analysis/plot_tbr_heatmap.jl
 ```
 
 ## Plotting the geometry in openmc-plotter

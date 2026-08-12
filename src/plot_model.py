@@ -1,7 +1,6 @@
 """Export the slab model and open it in the openmc-plotter GUI."""
 import argparse
 import subprocess
-
 from slab_model import SLAB_MODELS
 
 

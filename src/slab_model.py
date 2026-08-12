@@ -1,9 +1,7 @@
 """Slab blanket models: three breeder options, plasma point source, TBR tallies."""
 import argparse
-
 import openmc
 import neutronics_material_maker as nmm
-
 
 def make_breeder(breeder, enrichment):
     """One of the breeder material options: 'pbli', 'li' or 'flibe'."""
