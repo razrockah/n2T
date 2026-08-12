@@ -54,9 +54,9 @@ def _slab_model(breeder_mat):
 
     box = openmc.model.RectangularParallelepiped(-20, 20, -20, 20, -20, 20, boundary_type='vacuum')
 
-    coating_front = openmc.ZPlane(10.0)
-    fw_front = openmc.ZPlane(10.1)
-    breeder_front = openmc.ZPlane(12)
+    coating_front = openmc.ZPlane(1)
+    fw_front = openmc.ZPlane(1.1)
+    breeder_front = openmc.ZPlane(5)
 
     void_cell = openmc.Cell(name='void', region=-box & -coating_front)
     coating_cell = openmc.Cell(name='coating', fill=coating_mat, region=-box & +coating_front & -fw_front)
@@ -76,9 +76,9 @@ def _slab_model(breeder_mat):
     my_settings.source = plasma_source
 
     mesh = openmc.RegularMesh()
-    mesh.dimension = [40, 40, 40]
-    mesh.lower_left = (-20, -20, -20)
-    mesh.upper_right = (20, 20, 20)
+    mesh.dimension = [100, 100, 100]
+    mesh.lower_left = (-25, -25, -25)
+    mesh.upper_right = (25, 25, 25)
 
     tbr_tally = openmc.Tally(name='tbr')
     tbr_tally.scores = ['H3-production']
