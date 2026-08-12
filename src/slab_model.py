@@ -58,8 +58,8 @@ def slab_model(breeder='pbli', enrichment=90):
     box = openmc.model.RectangularParallelepiped(-20, 20, -20, 20, -20, 20, boundary_type='vacuum')
 
     coating_front = openmc.ZPlane(10.0)
-    fw_front = openmc.ZPlane(10.2)
-    breeder_front = openmc.ZPlane(13.2)
+    fw_front = openmc.ZPlane(10.1)
+    breeder_front = openmc.ZPlane(12)
 
     void_cell = openmc.Cell(name='void', region=-box & -coating_front)
     coating_cell = openmc.Cell(name='coating', fill=coating_mat, region=-box & +coating_front & -fw_front)
