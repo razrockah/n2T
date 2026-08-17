@@ -18,6 +18,7 @@ dist/
 tallies.out
 *.step
 *.stl
+analysis/*.csv
 
 # Julia
 *.jl.cov
