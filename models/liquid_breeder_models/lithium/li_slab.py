@@ -1,5 +1,6 @@
 import openmc
 import neutronics_material_maker as nmm
+import math
 ENRICHMENT = 90
 
 lithium = openmc.Material(name='Li')
@@ -22,24 +23,47 @@ tungsten.set_density('g/cm3', 19.25)
 materials = openmc.Materials([lithium, eurofer_he, tungsten])
 
 # GEOMETRY
-outer_box = openmc.model.RectangularParallelepiped(0, 50, -20, 20, -20, 20, boundary_type='vacuum')
-void_box = openmc.model.RectangularParallelepiped(0, 9, -20, 20, -20, 20)
-coating_box = openmc.model.RectangularParallelepiped(9, 9.1, -20, 20, -20, 20)
-fw_box = openmc.model.RectangularParallelepiped(9.1, 10,-20, 20, -20, 20)
-breeder_box = openmc.model.RectangularParallelepiped(10, 50, -20, 20, -20, 20)
+outer_box = openmc.model.RectangularParallelepiped(-100, 100, -100, 100, -100, 100, boundary_type='vacuum')
+coating_min = openmc.XPlane(9)
+fw_min = openmc.XPlane(9.1)
+breeder_min = openmc.XPlane(10)
 
-breeder_cell = openmc.Cell(name='breeder cell', region = -breeder_box, fill = lithium)
-void_cell = openmc.Cell(name='void cell', region = -void_box)
-coating_cell = openmc.Cell(name='coating cell', region = -coating_box, fill = tungsten)
-fw_cell = openmc.Cell(name='first wall cell', region = -fw_box, fill = eurofer_he)
+void_cell = openmc.Cell(name='void cell', region=-outer_box & -coating_min)
+coating_cell = openmc.Cell(name='coating cell', region=-outer_box & +coating_min & -fw_min, fill=tungsten)
+fw_cell = openmc.Cell(name='first wall cell', region=-outer_box & +fw_min & -breeder_min, fill=eurofer_he)
+breeder_cell = openmc.Cell(name='breeder cell', region=-outer_box & +breeder_min, fill=lithium)
 
 geometry = openmc.Geometry([void_cell, coating_cell, fw_cell, breeder_cell])
 
-# SETTINGS 
+# TALLIES
+mesh = openmc.RegularMesh()
+mesh.lower_left = (-10, -30, -0.5)
+mesh.upper_right = (50, 30, 0.5)
+mesh.dimension = (600, 600, 1)  # 1 mm pixels, thin slice at z=0
+
+tbr_mesh_tally = openmc.Tally(name='tbr mesh')
+tbr_mesh_tally.filters = [openmc.MeshFilter(mesh)]
+tbr_mesh_tally.scores = ['(n,Xt)']
+
+tbr_tally = openmc.Tally(name='tbr')
+tbr_tally.scores = ['(n,Xt)']
+
+tallies = openmc.Tallies([tbr_mesh_tally, tbr_tally])
+
+# SETTINGS
 source = openmc.IndependentSource()
+source.particle = 'neutron'
 source.space = openmc.stats.Point((0.0, 0.0, 0.0))
-source.angle = openmc.stats.Monodirectional((1.0, 0.0, 0.0)) # +x direction
-source.energy = openmc.stats.muir(e0=14080000.0, m_rat=5.0, kt=20000.0)
+
+mu_min = math.cos(math.radians(30)) # Cone of half-angle 30 around +x (from before)
+source.angle = openmc.stats.PolarAzimuthal(
+    mu=openmc.stats.Uniform(mu_min, 1.0),
+    phi=openmc.stats.Uniform(0.0, 2 * math.pi),
+    reference_uvw=(1.0, 0.0, 0.0),
+    reference_vwu=(0.0, 0.0, 1.0),
+)
+
+source.energy = openmc.stats.muir(e0=14.08e6, m_rat=5.0, kt=20_000.0) # D-T fusion spectrum at T = 20 keV
 
 settings = openmc.Settings()
 settings.batches = 100
@@ -47,6 +71,5 @@ settings.particles = 500_000
 settings.run_mode = 'fixed source'
 settings.source = source
 
-model = openmc.Model(geometry=geometry, materials=materials, settings=settings)
-
-model.export_to_model_xml()   
+lithium_model = openmc.Model(geometry=geometry, materials=materials, settings=settings, tallies=tallies)
+lithium_model.export_to_model_xml()
