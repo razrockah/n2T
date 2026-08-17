@@ -7,14 +7,13 @@ with **OpenMC**, using material definitions from the **neutronics_material_maker
 - **OpenMC** — P. K. Romano et al., "OpenMC: A State-of-the-Art Monte Carlo Code
   for Research and Development," *Ann. Nucl. Energy* **82**, 90–97 (2015).
   <https://docs.openmc.org>
-- **ENDF/B nuclear data** — <https://www.nndc.bnl.gov/endf/> (the specific
-  release is selected via `OPENMC_CROSS_SECTIONS`)
+- **ENDF/B nuclear data** — <https://www.nndc.bnl.gov/endf/> 
 - **neutronics_material_maker / Neutronics Workshop** — Shimwell et al. (2022).
   <https://github.com/fusion-energy/neutronics-workshop>
 - **model basis** — D. Sosa and I. Palermo, *Energies* **16**(11),
   4430 (2023). <https://doi.org/10.3390/en16114430>
 
-## scripts
+## Scripts
 All scripts live in `scripts/` and can be run from anywhere; they resolve paths
 relative to their own location. They expect the `openmc-env` conda environment
 to be active.
