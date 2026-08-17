@@ -1,3 +1,6 @@
+import openmc
+import neutronics_material_maker as nmm
+
 eurofer = nmm.Material.from_library('eurofer').openmc_material
 
 helium = openmc.Material(name='He')

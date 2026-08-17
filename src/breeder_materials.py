@@ -7,7 +7,7 @@ lithium = openmc.Material(name='Li')
 lithium.add_element('Li', 100, enrichment=ENRICHMENT, enrichment_target='Li6', enrichment_type='ao')
 lithium.set_density('g/cm3', 0.472)
 
-# lithium lead: PbLi (84-16)
+# lead lithium: PbLi (84-16)
 pbli = openmc.Material(name='PbLi')
 pbli.add_element('Pb', 84)
 pbli.add_element('Li', 16, enrichment=ENRICHMENT, enrichment_target='Li6', enrichment_type='ao')
