@@ -55,11 +55,14 @@ tallies = openmc.Tallies([tbr_mesh_tally, tbr_tally])
 # SETTINGS
 source = openmc.IndependentSource()
 source.particle = 'neutron'
-source.space = openmc.stats.Point((0.0, 0.0, 0.0))
+source.space = openmc.stats.CartesianIndependent(
+    x=openmc.stats.Discrete([0.0], [1.0]),
+    y=openmc.stats.Uniform(-30.0, 30.0),   # line source along y
+    z=openmc.stats.Discrete([0.0], [1.0]),
+)
 
-mu_min = math.cos(math.radians(30)) # Cone of half-angle 30 around +x (from before)
 source.angle = openmc.stats.PolarAzimuthal(
-    mu=openmc.stats.Uniform(mu_min, 1.0),
+    mu=openmc.stats.Uniform(0.0, 1.0),   # uniform over the +x hemisphere (180 deg span)
     phi=openmc.stats.Uniform(0.0, 2 * math.pi),
     reference_uvw=(1.0, 0.0, 0.0),
     reference_vwu=(0.0, 0.0, 1.0),
