@@ -48,7 +48,14 @@ tbr_mesh_tally.scores = ['(n,Xt)']
 tbr_tally = openmc.Tally(name='tbr')
 tbr_tally.scores = ['(n,Xt)']
 
-tallies = openmc.Tallies([tbr_mesh_tally, tbr_tally])
+flux_mesh_tally = openmc.Tally(name='flux mesh')
+flux_mesh_tally.filters = [openmc.MeshFilter(mesh)]
+flux_mesh_tally.scores = ['flux']
+
+flux_tally = openmc.Tally(name='flux')
+flux_tally.scores = ['flux']
+
+tallies = openmc.Tallies([tbr_mesh_tally, tbr_tally, flux_mesh_tally, flux_tally])
 
 # SETTINGS
 source = openmc.IndependentSource()
