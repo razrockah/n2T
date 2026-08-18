@@ -49,6 +49,45 @@ begin
     end
 end
 
+# ╔═╡ a1c4e8d3-95f2-4b6a-8c07-1d2e3f4a5b6c
+begin
+    li_mesh_flux_df = CSV.read("li_flux_mesh.csv", DataFrame)
+    li_flux_x, li_flux_y, li_flux_mat = tbr_df_to_mat(li_mesh_flux_df)
+    with_theme(theme_latexfonts()) do
+        li_flux_fig = Figure(size = (750,600))
+        li_flux_ax =  Axis(li_flux_fig[1, 1]; title = "Flux in Li", xlabel = "x [cm]", ylabel = "y [cm]", titlesize = 30, xlabelsize = 25, ylabelsize = 25)
+        hm = heatmap!(li_flux_ax, li_flux_x, li_flux_y, li_flux_mat; colormap = :inferno)
+        Colorbar(li_flux_fig[1, 2], hm; label = L"$n\cdot$cm per source neutron per cell")
+        li_flux_fig
+    end
+end
+
+# ╔═╡ b2d5f9e4-a603-4c7b-9d18-2e3f4a5b6c7d
+begin
+    flibe_mesh_flux_df = CSV.read("flibe_flux_mesh.csv", DataFrame)
+    flibe_flux_x, flibe_flux_y, flibe_flux_mat = tbr_df_to_mat(flibe_mesh_flux_df)
+    with_theme(theme_latexfonts()) do
+        flibe_flux_fig = Figure(size = (750,600))
+        flibe_flux_ax =  Axis(flibe_flux_fig[1, 1]; title = "Flux in FLiBe", xlabel = "x [cm]", ylabel = "y [cm]", titlesize = 30, xlabelsize = 25, ylabelsize = 25)
+        hm = heatmap!(flibe_flux_ax, flibe_flux_x, flibe_flux_y, flibe_flux_mat; colormap = :inferno)
+        Colorbar(flibe_flux_fig[1, 2], hm; label = L"$n\cdot$cm per source neutron per cell")
+        flibe_flux_fig
+    end
+end
+
+# ╔═╡ c3e60af5-b714-4d8c-ae29-3f4a5b6c7d8e
+begin
+    pbli_mesh_flux_df = CSV.read("pbli_flux_mesh.csv", DataFrame)
+    pbli_flux_x, pbli_flux_y, pbli_flux_mat = tbr_df_to_mat(pbli_mesh_flux_df)
+    with_theme(theme_latexfonts()) do
+        pbli_flux_fig = Figure(size = (750,600))
+        pbli_flux_ax =  Axis(pbli_flux_fig[1, 1]; title = "Flux in PbLi", xlabel = "x [cm]", ylabel = "y [cm]", titlesize = 30, xlabelsize = 25, ylabelsize = 25)
+        hm = heatmap!(pbli_flux_ax, pbli_flux_x, pbli_flux_y, pbli_flux_mat; colormap = :inferno)
+        Colorbar(pbli_flux_fig[1, 2], hm; label = L"$n\cdot$cm per source neutron per cell")
+        pbli_flux_fig
+    end
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1794,5 +1833,8 @@ version = "4.1.0+0"
 # ╠═3be18d17-1b32-427c-bad0-1e5c620116ea
 # ╠═7f2a9c41-63b8-4d2e-9f10-52c8a1b3d6e4
 # ╠═8e3b0d52-74c9-4e3f-a021-63d9b2c4e7f5
+# ╠═a1c4e8d3-95f2-4b6a-8c07-1d2e3f4a5b6c
+# ╠═b2d5f9e4-a603-4c7b-9d18-2e3f4a5b6c7d
+# ╠═c3e60af5-b714-4d8c-ae29-3f4a5b6c7d8e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
